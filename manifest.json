@@ -1,0 +1,21 @@
+{
+  "name": "PlutusDex Enhancer",
+  "description": "Extension to add community based client-side features to PlutusDex",
+  "version": "0.2",
+  "manifest_version": 3,
+  "action": {},
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "activeTab", "scripting"
+  ],
+  "icons": {
+    "16": "/images/icon16.png",
+    "19": "/images/icon19.png",
+    "32": "/images/icon32.png",
+    "38": "/images/icon38.png",
+    "48": "/images/icon48.png",
+    "128": "/images/icon128.png"
+  }
+}
