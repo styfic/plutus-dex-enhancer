@@ -95,23 +95,12 @@ function downloadCSV(csv) {
     downloadLink.click();
 }
 
-function cloneAttributes(element, sourceNode) {
-    // Source: https://stackoverflow.com/a/34237781
-    let attr;
-    let attributes = Array.prototype.slice.call(sourceNode.attributes);
-    while (attr = attributes.pop()) {
-        element.setAttribute(attr.nodeName, attr.nodeValue);
-    }
-}
-
 function createButton() {
-    const exists = [];
     const buttons = [];
     for (const button of document.querySelectorAll('button')) {
         if (button.textContent == "Download") {
             buttons.push(button);
         } else if (button.textContent == "Download CSV") {
-            exists.push(button);
             return;
         } 
     }
@@ -119,7 +108,7 @@ function createButton() {
     let btnDownload = buttons[0];
 
     var btn = document.createElement("button");
-    cloneAttributes(btn, btnDownload);
+    btn.setAttribute('style','-webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; box-sizing: inherit; line-height: 1.15; margin: 0; overflow: visible; text-transform: none; font-family: Graphik; position: relative; height: 56px; outline: none; padding: 0 20px; cursor: pointer; font-weight: 500; transition: all .2s ease; font-size: 14px; background: #fff; color: #213654; border: 1px solid #b4b8be; box-shadow: 0 2px 4px 0 rgba(0,0,0,.06); border-radius: 28px; width: 160px!important; -webkit-appearance: button;');
     btn.innerHTML = "Download CSV";
     btnDownload.parentNode.replaceChild(btn, btnDownload);   
 
