@@ -14,11 +14,6 @@ Follow the instructions in the wiki.
 
 **so that** I can import the data into other programs.
 
-## Changelog 
-- 2022-06-05  Initial version: Pluton rewards csv download
-- 2022-06-06  Added statements csv download
-- 2022-06-07  Removed obfuscation to submit to Chrome Web Store
-
 ## Issues reporting, enhancement requests
 Please use the Gitlab integrated features
 
