@@ -5,9 +5,7 @@ Extension to add community based client-side features to PlutusDex
 Chrome browser
 
 ## Installation
-1. [Download the zip archive](https://gitlab.com/_superhero1/plutusdex-enhancer/-/archive/main/plutusdex-enhancer-main.zip)
-2. Unpack it into a folder on your local computer
-3. [Load an unpacked extension](https://developer.chrome.com/docs/extensions/mv3/getstarted/#unpacked)
+Follow the instructions in the wiki.
 
 ## Use case
 **As a** PlutusDex user
@@ -19,6 +17,7 @@ Chrome browser
 ## Changelog 
 - 2022-06-05  Initial version: Pluton rewards csv download
 - 2022-06-06  Added statements csv download
+- 2022-06-07  Removed obfuscation to submit to Chrome Web Store
 
 ## Issues reporting, enhancement requests
 Please use the Gitlab integrated features
