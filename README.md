@@ -7,7 +7,7 @@ Chrome browser
 ## Installation
 The recommended way is to download the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/plutusdex-enhancer/necjdfandaodcoeagkacmlapednbihgl/?hl=en).
 
-If you prefer to install the extension manually please follow the instructions in the [wiki](/-/wikis/Installation#how-to-manually-install-the-plutusdex-enhancer-extension).
+If you prefer to install the extension manually please follow the instructions in the [wiki](../-/wikis/Installation#how-to-manually-install-the-plutusdex-enhancer-extension).
 
 ## Use case
 **As a** PlutusDex user
