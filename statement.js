@@ -119,7 +119,7 @@ function createButton() {
 
 chrome.runtime.onMessage.addListener(
     function (request, sender) {
-        if (sender.id === "bldndingjfineldnjlimjikckjcodgne" && request.action === "addButton")
+        if (sender.id === "necjdfandaodcoeagkacmlapednbihgl" && request.action === "addButton")
             createButton();
     }
 );
