@@ -117,4 +117,9 @@ function createButton() {
     }, false);
 }
 
-createButton();
+chrome.runtime.onMessage.addListener(
+    function (request, sender) {
+        if (sender.id === "bldndingjfineldnjlimjikckjcodgne" && request.action === "addButton")
+            createButton();
+    }
+);
