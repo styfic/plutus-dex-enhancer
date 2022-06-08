@@ -5,7 +5,8 @@ Extension to add community based client-side features to PlutusDex
 Chrome browser
 
 ## Installation
-Follow the instructions in the wiki.
+The recommended way is to download the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/plutusdex-enhancer/necjdfandaodcoeagkacmlapednbihgl/?hl=en).
+If you prefer to install the extension manually please follow the instructions in the wiki.
 
 ## Use case
 **As a** PlutusDex user
