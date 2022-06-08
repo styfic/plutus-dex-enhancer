@@ -24,8 +24,34 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-chrome.action.onClicked.addListener((tab) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "addButton" });
+var _port;
+var reloaded = false;
+
+function sendMessage() {
+    _port.postMessage({
+        action: 'addButton'
     });
+}
+
+chrome.runtime.onConnect.addListener(function (port) {
+    console.log('Connected to: ', port.name);
+    _port = port;
+
+    _port.onMessage.addListener(function (msg) {
+        if (msg.status === "listening" && reloaded) {
+            sendMessage();
+            reloaded = false;
+        }
+    });
+});
+
+chrome.action.onClicked.addListener((tab) => {
+    try {
+        sendMessage();
+    } catch (err) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+            chrome.tabs.reload(tabs[0].id);
+            reloaded = true;
+        });
+    }
 });

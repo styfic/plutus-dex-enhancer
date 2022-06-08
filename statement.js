@@ -98,28 +98,51 @@ function downloadCSV(csv) {
 function createButton() {
     const buttons = [];
     for (const button of document.querySelectorAll('button')) {
-        if (button.textContent == "Download") {
+        if (button.textContent === "Download") {
             buttons.push(button);
-        } else if (button.textContent == "Download CSV") {
+        } else if (button.textContent === "Download CSV") {
             return;
-        } 
+        }
+    }
+
+    if (buttons.length < 1) {
+        setTimeout(createButton, 250);
     }
 
     let btnDownload = buttons[0];
 
     var btn = document.createElement("button");
-    btn.setAttribute('style','-webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; box-sizing: inherit; line-height: 1.15; margin: 0; overflow: visible; text-transform: none; font-family: Graphik; position: relative; height: 56px; outline: none; padding: 0 20px; cursor: pointer; font-weight: 500; transition: all .2s ease; font-size: 14px; background: #fff; color: #213654; border: 1px solid #b4b8be; box-shadow: 0 2px 4px 0 rgba(0,0,0,.06); border-radius: 28px; width: 160px!important; -webkit-appearance: button;');
+    btn.setAttribute('style', '-webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; box-sizing: inherit; line-height: 1.15; margin: 0; overflow: visible; text-transform: none; font-family: Graphik; position: relative; height: 56px; outline: none; padding: 0 20px; cursor: pointer; font-weight: 500; transition: all .2s ease; font-size: 14px; background: #fff; color: #213654; border: 1px solid #b4b8be; box-shadow: 0 2px 4px 0 rgba(0,0,0,.06); border-radius: 28px; width: 160px!important; -webkit-appearance: button;');
     btn.innerHTML = "Download CSV";
-    btnDownload.parentNode.replaceChild(btn, btnDownload);   
+    btnDownload.parentNode.replaceChild(btn, btnDownload);
 
     btn.addEventListener("click", () => {
         getStatementsInfo(token).then(response => fixStatements(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv));
     }, false);
+
+    port.disconnect();
 }
 
-chrome.runtime.onMessage.addListener(
-    function (request, sender) {
-        if (sender.id === "necjdfandaodcoeagkacmlapednbihgl" && request.action === "addButton")
-            createButton();
+var port = chrome.runtime.connect(null, {
+    name: 'PlutusDex'
+});
+
+function initPort() {
+    if (document.querySelectorAll('button').length < 1) {
+        setTimeout(initPort, 250);
+    } else {
+        if (port.name) {
+            port.postMessage({
+                status: 'listening'
+            });
+        }
     }
-);
+}
+
+port.onMessage.addListener(function (msg) {
+    if (msg.action === "addButton") {
+        createButton();
+    }
+});
+
+initPort();

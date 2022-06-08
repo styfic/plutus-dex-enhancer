@@ -79,17 +79,21 @@ function downloadCSV(csv) {
 
 function createButton() {
     for (const button of document.querySelectorAll('button')) {
-        if (button.textContent == "Download CSV") {
+        if (button.textContent === "Download CSV") {
             return;
         }
     }
 
     const matches = [];
     for (const div of document.querySelectorAll('div')) {
-        if (div.textContent == "Transactions") {
+        if (div.textContent === "Transactions") {
             matches.push(div);
             break;
         }
+    }
+
+    if (matches.length < 1) {
+        setTimeout(createButton, 250);
     }
 
     let divTarget = matches[0].parentElement;
@@ -102,11 +106,30 @@ function createButton() {
     btn.addEventListener("click", () => {
         getRewardsInfo(token).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv));
     }, false);
+    
+    port.disconnect();
 }
 
-chrome.runtime.onMessage.addListener(
-    function (request, sender) {
-        if (sender.id === "necjdfandaodcoeagkacmlapednbihgl" && request.action === "addButton")
-            createButton();
+var port = chrome.runtime.connect(null, {
+    name: 'PlutusDex'
+});
+
+function initPort() {
+    if (document.querySelectorAll('button').length < 1) {
+        setTimeout(initPort, 250);
+    } else {
+        if (port.name) {
+            port.postMessage({
+                status: 'listening'
+            });
+        }
     }
-);
+}
+
+port.onMessage.addListener(function (msg) {
+    if (msg.action === "addButton") {
+        createButton();
+    }
+});
+
+initPort();
