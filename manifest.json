@@ -1,7 +1,7 @@
 {
   "name": "PlutusDex Enhancer",
   "description": "Extension to add community based client-side features to PlutusDex",
-  "version": "0.4",
+  "version": "0.5",
   "manifest_version": 3,
   "action": {},
   "content_scripts": [
@@ -21,6 +21,15 @@
       "run-at": "document_idle",
       "js": [
         "statement.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://dex.plutus.it/dashboard/trading"
+      ],
+      "run-at": "document_idle",
+      "js": [
+        "orders.js"
       ]
     }
   ],
