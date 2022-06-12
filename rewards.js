@@ -77,39 +77,6 @@ function downloadCSV(csv) {
     downloadLink.click();
 }
 
-function createButton() {
-    for (const button of document.querySelectorAll('button')) {
-        if (button.textContent === "Download CSV") {
-            return;
-        }
-    }
-
-    const matches = [];
-    for (const div of document.querySelectorAll('div')) {
-        if (div.textContent === "Transactions") {
-            matches.push(div);
-            break;
-        }
-    }
-
-    if (matches.length < 1) {
-        setTimeout(createButton, 250);
-    }
-
-    let divTarget = matches[0].parentElement;
-
-    let btn = document.createElement("button");
-    btn.setAttribute('style', '-webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; box-sizing: inherit; line-height: 1.15; margin: 0; overflow: visible; text-transform: none; font-family: Graphik; position: relative; height: 56px; outline: none; padding: 0 20px; cursor: pointer; font-weight: 500; transition: all .2s ease; font-size: 14px; background: #fff; color: #213654; border: 1px solid #b4b8be; box-shadow: 0 2px 4px 0 rgba(0,0,0,.06); border-radius: 28px; width: 160px!important; -webkit-appearance: button;');
-    btn.innerHTML = "Download CSV";
-    divTarget.appendChild(btn);
-
-    btn.addEventListener("click", () => {
-        getRewardsInfo(token).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv));
-    }, false);
-    
-    port.disconnect();
-}
-
 var port = chrome.runtime.connect(null, {
     name: 'PlutusDex'
 });
@@ -127,8 +94,8 @@ function initPort() {
 }
 
 port.onMessage.addListener(function (msg) {
-    if (msg.action === "addButton") {
-        createButton();
+    if (msg.action === "downloadCSV") {
+        getRewardsInfo(token).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv)).then(port.disconnect());
     }
 });
 
