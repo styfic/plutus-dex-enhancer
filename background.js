@@ -29,18 +29,16 @@ var reloaded = false;
 
 function sendMessage() {
     _port.postMessage({
-        action: 'downloadCSV'
+        action: 'run'
     });
 }
 
-function triggerDownload() {
+function triggerRun(tab) {
     try {
         sendMessage();
     } catch (err) {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            chrome.tabs.reload(tabs[0].id);
-            reloaded = true;
-        });
+        chrome.tabs.reload(tab.id);
+        reloaded = true;
     }
 }
 
@@ -59,13 +57,26 @@ chrome.runtime.onConnect.addListener(function (port) {
 chrome.action.onClicked.addListener((tab) => {
     switch (tab.url) {
         case 'https://dex.plutus.it/dashboard/statements':
-            triggerDownload();
+            triggerRun(tab);
             break;
         case 'https://dex.plutus.it/dashboard/trading':
-            triggerDownload();
+            triggerRun(tab);
             break;
         case 'https://dex.plutus.it/dashboard/pluton':
-            triggerDownload();
+            triggerRun(tab);
             break;
     }
 });
+
+chrome.tabs.onUpdated.addListener(
+    function (tabId, changeInfo, tab) {
+        if (changeInfo.status === "complete") {
+            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                let tab = tabs[0];
+                if (tab.url === 'https://dex.plutus.it/dashboard/settings/subscriptions') {
+                    triggerRun(tab);
+                }
+            });
+        }
+    }
+);

@@ -78,7 +78,7 @@ function downloadCSV(csv) {
 }
 
 var port = chrome.runtime.connect(null, {
-    name: 'PlutusDex'
+    name: 'PlutusDex - Rewards'
 });
 
 function initPort() {
@@ -94,7 +94,7 @@ function initPort() {
 }
 
 port.onMessage.addListener(function (msg) {
-    if (msg.action === "downloadCSV") {
+    if (msg.action === "run") {
         getRewardsInfo(token).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv)).then(port.disconnect());
     }
 });
