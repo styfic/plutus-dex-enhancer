@@ -27,15 +27,15 @@ SOFTWARE.
 var _port;
 var reloaded = false;
 
-function sendMessage() {
+function sendMessage(action) {
     _port.postMessage({
-        action: 'run'
+        action: action
     });
 }
 
-function triggerRun(tab) {
+function triggerRun(tab, action) {
     try {
-        sendMessage();
+        sendMessage(action);
     } catch (err) {
         chrome.tabs.reload(tab.id);
         reloaded = true;
@@ -48,7 +48,7 @@ chrome.runtime.onConnect.addListener(function (port) {
 
     _port.onMessage.addListener(function (msg) {
         if (msg.status === "listening" && reloaded) {
-            sendMessage();
+            sendMessage(msg.action);
             reloaded = false;
         }
     });
@@ -57,13 +57,13 @@ chrome.runtime.onConnect.addListener(function (port) {
 chrome.action.onClicked.addListener((tab) => {
     switch (tab.url) {
         case 'https://dex.plutus.it/dashboard/statements':
-            triggerRun(tab);
+            triggerRun(tab, 'statement');
             break;
         case 'https://dex.plutus.it/dashboard/trading':
-            triggerRun(tab);
+            triggerRun(tab, 'orders');
             break;
         case 'https://dex.plutus.it/dashboard/pluton':
-            triggerRun(tab);
+            triggerRun(tab, 'rewards');
             break;
     }
 });
@@ -74,7 +74,7 @@ chrome.tabs.onUpdated.addListener(
             chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                 let tab = tabs[0];
                 if (tab.url === 'https://dex.plutus.it/dashboard/settings/subscriptions') {
-                    triggerRun(tab);
+                    triggerRun(tab, 'subscription');
                 }
             });
         }

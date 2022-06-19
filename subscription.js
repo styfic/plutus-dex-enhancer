@@ -26,7 +26,7 @@ SOFTWARE.
 
 var token = localStorage['id_token'];
 
-function getSubscriptionInfo(token) {
+async function getSubscriptionInfo(token) {
     var myHeaders = new Headers();
     myHeaders.append("Authorization", "Bearer " + token);
 
@@ -36,7 +36,7 @@ function getSubscriptionInfo(token) {
         redirect: 'follow'
     };
 
-    return fetch("https://api.plutus.it/platform/subscription", requestOptions)
+    return await fetch("https://api.plutus.it/platform/subscription", requestOptions)
         .then(response => response.json())
         .then(jsonResponse => { return jsonResponse; })
         .catch(err => console.warn(err));
@@ -65,9 +65,28 @@ function addEndDate(json) {
         divTarget.appendChild(divEndsOn);
 
         port.disconnect();
-    } else {
-        setTimeout(addEndDate(json), 250);
     }
+}
+
+// Source: https://stackoverflow.com/a/61511955
+function waitForElm(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(mutations => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
 }
 
 var port = chrome.runtime.connect(null, {
@@ -75,35 +94,19 @@ var port = chrome.runtime.connect(null, {
 });
 
 function initPort() {
-    const matches = [];
-    for (const div of document.querySelectorAll('div')) {
-        if (div.textContent.startsWith("You are currently on our ") && div.textContent.endsWith("plan")) {
-            matches.push(div);
-            break;
-        }
-    }
-
-    if (matches.length > 0) {
-        if (port.name) {
-            try {
-                port.postMessage({
-                    status: 'listening'
-                });
-            } catch (err) {
-                return;
-            }
-        }
-    } else {
-        setTimeout(initPort, 250);
+    if (port.name) {
+        port.postMessage({
+            status: 'listening',
+            action: 'subscription'
+        });
     }
 }
 
 port.onMessage.addListener(function (msg) {
-    if (msg.action === "run") {
-        getSubscriptionInfo(token).then((response) => {
-            return new Promise(resolve => setTimeout(() => resolve(response), 1000));
-        })
-            .then(response => addEndDate(response));
+    if (msg.action === "subscription") {
+        waitForElm('#react-app > div > div.geEcESExyiIzbObfkkL3Ng\\=\\= > div._5WI0ofGTlf55VoTUNGyFrA\\=\\= > div > div.JHUE0LWfV-l1JNL3ayLasQ\\=\\= > div > div > span').then((elm) => {
+            getSubscriptionInfo(token).then(response => addEndDate(response));
+        });
     }
 });
 

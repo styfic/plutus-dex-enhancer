@@ -26,7 +26,7 @@ SOFTWARE.
 
 var token = localStorage['id_token'];
 
-function getRewardsInfo(token) {
+async function getRewardsInfo(token) {
     var myHeaders = new Headers();
     myHeaders.append("Authorization", "Bearer " + token);
 
@@ -36,7 +36,7 @@ function getRewardsInfo(token) {
         redirect: 'follow'
     };
 
-    return fetch("https://api.plutus.it/platform/transactions/pluton", requestOptions)
+    return await fetch("https://api.plutus.it/platform/transactions/pluton", requestOptions)
         .then(response => response.json())
         .then(jsonResponse => { return jsonResponse; })
         .catch(err => console.warn(err));
@@ -82,19 +82,16 @@ var port = chrome.runtime.connect(null, {
 });
 
 function initPort() {
-    if (document.querySelectorAll('button').length < 1) {
-        setTimeout(initPort, 250);
-    } else {
-        if (port.name) {
-            port.postMessage({
-                status: 'listening'
-            });
-        }
+    if (port.name) {
+        port.postMessage({
+            status: 'listening',
+            action: 'rewards'
+        });
     }
 }
 
 port.onMessage.addListener(function (msg) {
-    if (msg.action === "run") {
+    if (msg.action === "rewards") {
         getRewardsInfo(token).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv)).then(port.disconnect());
     }
 });

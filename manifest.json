@@ -1,7 +1,7 @@
 {
   "name": "PlutusDex Enhancer",
   "description": "Extension to add community based client-side features to PlutusDex",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "manifest_version": 3,
   "action": {},
   "content_scripts": [

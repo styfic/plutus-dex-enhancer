@@ -26,7 +26,7 @@ SOFTWARE.
 
 var token = localStorage['id_token'];
 
-function getStatementsInfo(token) {
+async function getStatementsInfo(token) {
     var myHeaders = new Headers();
     myHeaders.append("Authorization", "Bearer " + token);
     myHeaders.append("Content-Type", "application/json");
@@ -40,7 +40,7 @@ function getStatementsInfo(token) {
         redirect: 'follow'
     };
 
-    return fetch("https://hasura.plutus.it/v1alpha1/graphql", requestOptions)
+    return await fetch("https://hasura.plutus.it/v1alpha1/graphql", requestOptions)
         .then(response => response.json())
         .then(jsonResponse => { return jsonResponse.data.transactions_view; })
         .catch(err => console.warn(err));
@@ -98,19 +98,16 @@ var port = chrome.runtime.connect(null, {
 });
 
 function initPort() {
-    if (document.querySelectorAll('button').length < 1) {
-        setTimeout(initPort, 250);
-    } else {
-        if (port.name) {
-            port.postMessage({
-                status: 'listening'
-            });
-        }
+    if (port.name) {
+        port.postMessage({
+            status: 'listening',
+            action: 'statement'
+        });
     }
 }
 
 port.onMessage.addListener(function (msg) {
-    if (msg.action === "run") {
+    if (msg.action === "statement") {
         getStatementsInfo(token).then(response => fixStatements(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv)).then(port.disconnect());
     }
 });
