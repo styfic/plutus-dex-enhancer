@@ -1,7 +1,7 @@
 {
   "name": "PlutusDex Enhancer",
   "description": "Extension to add community based client-side features to PlutusDex",
-  "version": "0.6.2",
+  "version": "0.7.1",
   "manifest_version": 3,
   "action": {},
   "content_scripts": [
@@ -46,7 +46,7 @@
     "service_worker": "background.js"
   },
   "permissions": [
-    "activeTab","tabs"
+    "activeTab", "tabs"
   ],
   "icons": {
     "16": "/images/icon16.png",
@@ -55,5 +55,10 @@
     "38": "/images/icon38.png",
     "48": "/images/icon48.png",
     "128": "/images/icon128.png"
+  },
+  "externally_connectable": {
+    "matches": [
+      "https://dex.plutus.it/dashboard/settings/subscriptions"
+    ]
   }
 }

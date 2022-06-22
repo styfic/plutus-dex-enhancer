@@ -42,6 +42,71 @@ function triggerRun(tab, action) {
     }
 }
 
+async function submitCardDetails(input) {
+    const number = input.CardNumber;
+    const month = input.MM;
+    const year = input.YYYY;
+    const cvc = input.CVC;
+
+    var myHeaders = new Headers();
+    myHeaders.append("Authorization", "pk_tsglnhft2nk2kk33lcfhwsmxyu5");
+    myHeaders.append("Content-Type", "application/json");
+
+    var json_data = JSON.stringify({
+        'type': 'card',
+        'number': number,
+        'expiry_month': month,
+        'expiry_year': year,
+        'cvv': cvc,
+        'billing_address': null,
+        'phone': {}
+    })
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: json_data
+    };
+
+    return await fetch("https://api.checkout.com/tokens", requestOptions)
+        .then(response => response.json())
+        .then(jsonResponse => { return jsonResponse.token; })
+        .catch(err => console.warn(err));
+}
+
+async function createPayment(id_token, token, plan) {
+    var myHeaders = new Headers();
+    myHeaders.append("Authorization", "Bearer " + id_token);
+    myHeaders.append("Content-Type", "application/json");
+
+    var json_data = JSON.stringify({
+        'token': token,
+        'plan': plan,
+        'paymentType': 'Recurring'
+    });
+
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: json_data
+    };
+
+    return await fetch("https://cors-anywhere-05423.herokuapp.com/https://api.plutus.it/v2/subscription/initial-charge", requestOptions)
+        .then(response => response.json())
+        .then(jsonResponse => { return jsonResponse.redirectTo; })
+        .catch(err => console.warn(err));
+}
+
+function createPayLink(link) {
+    if (typeof link !== 'undefined') {
+        if (link.startsWith("https://api.checkout.com/sessions-interceptor/sid_")) {
+            return '<a href="' + link + '" target="_blank"><button style="-webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; box-sizing: inherit; line-height: 1.15; margin: 0; overflow: visible; text-transform: none; font-family: Graphik; position: relative; height: 56px; outline: none; width: 100%; padding: 0 20px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all .2s ease; background: #2569db; color: #fff; border: 0; border-radius: 28px; -webkit-appearance: button; width: 220px;" onclick="this.disabled=true; this.innerHTML=\'Continue in new tab\'; this.setAttribute(\'style\',\'-webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-box-direction: normal; box-sizing: inherit; line-height: 1.15; margin: 0; overflow: visible; text-transform: none; font-family: Graphik; position: relative; height: 56px; outline: none; padding: 0 20px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all .2s ease; color: #fff; border: 0; border-radius: 28px; -webkit-appearance: button; width: 220px; background: #ececec;\')">Complete Payment</button></a>';
+        }
+    }
+
+    return "An error occured. No payment was made."
+}
+
 chrome.runtime.onConnect.addListener(function (port) {
     console.log('Connected to: ', port.name);
     _port = port;
@@ -77,6 +142,22 @@ chrome.tabs.onUpdated.addListener(
                     triggerRun(tab, 'subscription');
                 }
             });
+        }
+    }
+);
+
+chrome.runtime.onMessageExternal.addListener(
+    function (request, sender, sendResponse) {
+        if (sender.url === "https://dex.plutus.it/dashboard/settings/subscriptions") {
+            const id_token = request.id_token;
+            const plan = request.form.plan;
+
+            submitCardDetails(request.form)
+                .then(token => createPayment(id_token, token, plan))
+                .then(link => createPayLink(link))
+                .then(result => sendResponse(result));
+        } else {
+            return;
         }
     }
 );
