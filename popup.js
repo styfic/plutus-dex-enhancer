@@ -49,6 +49,14 @@ function sendMessage(caller, action) {
     });
 }
 
+author.addEventListener("click", async () => {
+    chrome.tabs.create({ url: "https://twitter.com/_superhero1" });
+});
+
+donate.addEventListener("click", async () => {
+    chrome.tabs.create({ url: "https://ko-fi.com/superhero1" });
+});
+
 statement.addEventListener("click", async (event) => {
     sendMessage(event.target, "statement");
 });
