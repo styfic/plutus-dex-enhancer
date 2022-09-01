@@ -1,0 +1,34 @@
+.footer {
+    font-size: small;
+}
+
+.footer a {
+    text-decoration: none;
+}
+
+.jiggle {
+    -webkit-animation: jiggle 0.2s infinite;
+    -moz-animation-duration: 0.2s;
+    -moz-animation-name: jiggle;
+    -moz-animation-iteration-count: infinite;
+    -webkit-transform: rotate(-3deg);
+    -moz-transform: rotate(-3deg);
+}
+
+@-moz-keyframes jiggle {
+    0% {
+        -moz-transform: rotate(-7deg);
+    }
+    50% {
+        -moz-transform: rotate(7deg);
+    }
+}
+
+@-webkit-keyframes jiggle {
+    0% {
+        -webkit-transform: rotate(-7deg);
+        }
+    50% {
+        -webkit-transform: rotate(7deg);
+    }
+}

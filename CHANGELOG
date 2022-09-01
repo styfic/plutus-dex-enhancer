@@ -1,3 +1,12 @@
+2022-08-26 v0.8
+Removed background worker
+Removed subscription payment feature
+Removed CORS anywhere proxy
+Added popup
+Added withdrawals csv download
+Added transactions csv download
+Added bootstrap 5.2.0 CSS
+
 2022-06-22 v0.7.1
 Added CORS anywhere proxy, minor other fixes
 
