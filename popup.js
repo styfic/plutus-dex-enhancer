@@ -54,7 +54,7 @@ author.addEventListener("click", async () => {
 });
 
 donate.addEventListener("click", async () => {
-    chrome.tabs.create({ url: "https://ko-fi.com/superhero1" });
+    chrome.tabs.create({ url: "https://donate.plutus.link" });
 });
 
 statement.addEventListener("click", async (event) => {

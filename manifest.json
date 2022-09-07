@@ -1,7 +1,7 @@
 {
   "name": "PlutusDex Enhancer",
   "description": "Extension to add community based client-side features to PlutusDex",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "manifest_version": 3,
   "action": {
     "default_popup": "popup.html",
@@ -19,7 +19,6 @@
       "matches": [
         "https://dex.plutus.it/dashboard/*"
       ],
-      "run-at": "document_idle",
       "js": [
         "content.js"
       ]
