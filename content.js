@@ -151,8 +151,19 @@ function flattenJson(json) {
 }
 
 function jsonToCsv(json) {
+    var fields = []
+    for (let i = 0; i < json.length; i++) {
+        let new_fields = Object.keys(json[i])
+        new_fields.forEach(item => {
+            if (fields.indexOf(item) === -1) {
+                if (json[i][item] !== null) {
+                    fields.push(item);
+                }
+            }
+        });
+    }
+    
     // Source: https://stackoverflow.com/a/31536517
-    var fields = Object.keys(json[0])
     var replacer = function (key, value) { return value === null ? '' : value }
     var csv = json.map(function (row) {
         return fields.map(function (fieldName) {

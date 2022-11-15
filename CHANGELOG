@@ -1,3 +1,9 @@
+2022-11-15 v0.8.3
+Fixed JSON to CSV parsing
+
+2022-09-07 v0.8.2
+Update donation link, prepare Firefox manifest v3
+
 2022-09-01 v0.8.1
 Fixed #7 (Footer links do not work)
 
