@@ -72,6 +72,9 @@ withdrawals.addEventListener("click", async (event) => {
 transactions.addEventListener("click", async (event) => {
     sendMessage(event.target, "transactions");
 });
+blockpit.addEventListener("click", async (event) => {
+    sendMessage(event.target, "blockpit");
+});
 
 // resume last action if reloaded
 chrome.tabs.onUpdated.addListener(

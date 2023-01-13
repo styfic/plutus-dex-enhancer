@@ -139,6 +139,37 @@ function fixStatements(json) {
     return json
 }
 
+function parseTransactionDate(string) {
+    let date = string.slice(8, 10) + '.' + string.slice(5, 7) + '.' + string.slice(0, 4) + ' ' + string.slice(11, 19)
+    return date;
+}
+
+function convertForBlockpit(json) {
+    let resultJson = [];
+
+    for (let index = 0; index < json.length; index++) {
+        const element = json[index];
+
+        let template = {
+            id: index,
+            exchange_name: 'Plutus DEX',
+            depot_name: 'Plutus',
+            transaction_date: parseTransactionDate(element.createdAt),
+            buy_asset: 'PLU',
+            buy_amount: element.amount,
+            sell_asset: 'EUR',
+            sell_amount: (Number(element.rebate_rate) === 0 ? 100 : Number(element.rebate_rate)) * element.fiat_amount_rewarded / 10000,
+            fee_asset: '',
+            fee_amount: '',
+            transaction_type: 'trade',
+            note: `${element.contis_transaction ? element.contis_transaction.description : ''} ${element.reason || ''}`,
+            linked_transaction: ''
+        }
+        resultJson.push(template);
+    }
+    return resultJson
+}
+
 function flattenJson(json) {
     // Source: https://stackoverflow.com/a/61602592
     const flatten = (obj, roots = [], sep = '.') => Object.keys(obj).reduce((memo, prop) => Object.assign({}, memo, Object.prototype.toString.call(obj[prop]) === '[object Object]' ? flatten(obj[prop], roots.concat([prop]), sep) : { [roots.concat([prop]).join(sep)]: obj[prop] }), {})
@@ -201,6 +232,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     }
     else if (action === "transactions") {
         getTransactions().then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "transactions")).then(sendResponse({ action: "transactions", status: "done" }));
+    }
+    else if (action === "blockpit") {
+        getRewards().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit")).then(sendResponse({ action: "blockpit", status: "done" }));
     } else {
         sendResponse({ action: action, status: "done" })
     }
