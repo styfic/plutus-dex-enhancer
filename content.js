@@ -139,22 +139,41 @@ function fixStatements(json) {
     return json
 }
 
-function parseTransactionDate(string) {
-    let date = string.slice(8, 10) + '.' + string.slice(5, 7) + '.' + string.slice(0, 4) + ' ' + string.slice(11, 19)
-    return date;
+function blockpitDate(string) {
+    let date = new Date(string);
+    let dd = ('0' + date.getDate()).slice(-2);
+    let mm = ('0' + (date.getMonth()+1)).slice(-2);
+    let yyyy = date.getFullYear();
+    let hh = ('0' + date.getHours()).slice(-2);
+    let min = ('0' + date.getMinutes()).slice(-2);
+    let ss = ('0' + date.getSeconds()).slice(-2);
+    let blockpitDate = `${dd}.${mm}.${yyyy} ${hh}:${min}:${ss}`
+    return blockpitDate;
 }
 
 function convertForBlockpit(json) {
+
+    console.log(json);
     let resultJson = [];
 
     for (let index = 0; index < json.length; index++) {
         const element = json[index];
+        let row = getBlockpitTemplate (element, index);
+        if (typeof row !== 'undefined') { resultJson.push(row) } ;
+    }
+    console.log(resultJson);
+    return resultJson
+}
 
+function getBlockpitTemplate(element, index){
+
+    // Case Rewards
+    if (typeof element.reason !== 'undefined'){
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
             depot_name: 'Plutus',
-            transaction_date: parseTransactionDate(element.createdAt),
+            transaction_date: blockpitDate(element.createdAt),
             buy_asset: 'PLU',
             buy_amount: element.amount,
             sell_asset: 'EUR',
@@ -165,11 +184,47 @@ function convertForBlockpit(json) {
             note: `${element.contis_transaction ? element.contis_transaction.description : ''} ${element.reason || ''}`,
             linked_transaction: ''
         }
-        resultJson.push(template);
-    }
-    return resultJson
-}
+        return template}
+    
+    // Case Withdrawal
+    else if (element.__typename === "pluton_withdraw_requests" && element.status === "COMPLETED"){
+        let template = {
+            id: index,
+            exchange_name: 'Plutus DEX',
+            depot_name: 'Plutus',
+            transaction_date: blockpitDate(element.created_at),
+            buy_asset: 'EUR',
+            buy_amount: element.card_transfer.amount,
+            sell_asset: 'PLU',
+            sell_amount: element.amount,
+            fee_asset: '',
+            fee_amount: '',
+            transaction_type: 'trade',
+            note: element.payout_destination_type,
+            linked_transaction: ''
+        }
+        return template}
 
+    // Case Buy order
+    else if (element.__typename === "crypto_orders_view" && element.model === "BuyOrder" && element.status === "FULFILLED"){
+        let template = {
+            id: index,
+            exchange_name: 'Plutus DEX',
+            depot_name: 'Plutus',
+            transaction_date: blockpitDate(element.created_at),
+            buy_asset: 'PLU',
+            buy_amount: element.crypto_amount,
+            sell_asset: 'EUR',
+            sell_amount: element.fiat_amount,
+            fee_asset: '',
+            fee_amount: '',
+            transaction_type: 'trade',
+            note: '',
+            linked_transaction: ''
+        }
+        return template}
+
+}
 function flattenJson(json) {
     // Source: https://stackoverflow.com/a/61602592
     const flatten = (obj, roots = [], sep = '.') => Object.keys(obj).reduce((memo, prop) => Object.assign({}, memo, Object.prototype.toString.call(obj[prop]) === '[object Object]' ? flatten(obj[prop], roots.concat([prop]), sep) : { [roots.concat([prop]).join(sep)]: obj[prop] }), {})
@@ -234,7 +289,12 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         getTransactions().then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "transactions")).then(sendResponse({ action: "transactions", status: "done" }));
     }
     else if (action === "blockpit") {
-        getRewards().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit")).then(sendResponse({ action: "blockpit", status: "done" }));
+        // Rewards Export
+        getRewards().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_rewards")).then(sendResponse({ action: "blockpit", status: "done" }));
+        // Orders Export
+        getOrders().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_orders")).then(sendResponse({ action: "blockpit", status: "done" }));
+        // Withdrawals Export
+        getWithdrawals().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_withdrawals")).then(sendResponse({ action: "blockpit", status: "done" }));
     } else {
         sendResponse({ action: action, status: "done" })
     }
