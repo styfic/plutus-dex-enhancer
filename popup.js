@@ -72,15 +72,9 @@ withdrawals.addEventListener("click", async (event) => {
 transactions.addEventListener("click", async (event) => {
     sendMessage(event.target, "transactions");
 });
-<<<<<<< Updated upstream
-=======
 perks.addEventListener("click", async (event) => {
     sendMessage(event.target, "perks");
 });
-blockpit.addEventListener("click", async (event) => {
-    sendMessage(event.target, "blockpit");
-});
->>>>>>> Stashed changes
 
 // resume last action if reloaded
 chrome.tabs.onUpdated.addListener(
