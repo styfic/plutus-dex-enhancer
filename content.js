@@ -168,19 +168,19 @@ function convertForBlockpit(json) {
 function getBlockpitTemplate(element, index){
 
     // Case Rewards
-    if (typeof element.reason !== 'undefined' && element.reason !== null){
+    if (typeof element.reason !== 'undefined'){
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
             depot_name: 'Plutus',
-            transaction_date: blockpitDate(element.updatedAt),
+            transaction_date: blockpitDate(element.createdAt),
             buy_asset: 'PLU',
             buy_amount: element.amount,
-            sell_asset: '',
-            sell_amount: '',
+            sell_asset: 'EUR',
+            sell_amount: (Number(element.rebate_rate) === 0 ? 100 : Number(element.rebate_rate)) * element.fiat_amount_rewarded / 10000,
             fee_asset: '',
             fee_amount: '',
-            transaction_type: 'deposit',
+            transaction_type: 'trade',
             note: `${element.contis_transaction ? element.contis_transaction.description : ''} ${element.reason || ''}`,
             linked_transaction: ''
         }
