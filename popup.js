@@ -75,6 +75,9 @@ transactions.addEventListener("click", async (event) => {
 blockpit.addEventListener("click", async (event) => {
     sendMessage(event.target, "blockpit");
 });
+perks.addEventListener("click", async (event) => {
+    sendMessage(event.target, "perks");
+});
 
 // resume last action if reloaded
 chrome.tabs.onUpdated.addListener(

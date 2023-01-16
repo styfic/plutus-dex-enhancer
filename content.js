@@ -116,6 +116,39 @@ async function getTransactions() {
         .catch(err => console.warn(err));
 }
 
+async function getPerks() {
+    var myHeaders = new Headers();
+    myHeaders.append("Authorization", "Bearer " + localStorage['id_token']);
+  
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
+  
+    return await fetch("https://api.plutus.it/platform/configurations/perks", requestOptions)
+        .then(response => response.json())
+        .then(jsonResponse => { return jsonResponse; })
+        .catch(err => console.warn(err));
+  }
+
+async function getUserPerks() {
+  var myHeaders = new Headers();
+  myHeaders.append("Authorization", "Bearer " + localStorage['id_token']);
+
+  var requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow'
+  };
+
+  return await fetch("https://api.plutus.it/platform/perks", requestOptions)
+      .then(response => response.json())
+      .then(jsonResponse => { return jsonResponse; })
+      .catch(err => console.warn(err));
+}
+
+
 function fixStatements(json) {
     json.forEach(function (record) {
         switch (record.type) {
@@ -225,6 +258,40 @@ function getBlockpitTemplate(element, index){
         return template}
 
 }
+function getFirstDayCurrentMonth() {
+    const now = new Date(); 
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
+function checkPerks(response){
+
+    let perkTransactionsOfCurrentMonth = [];
+    let userPerks = response.perks;
+    let usedPerks = [];
+    let unusedPerks = [];
+
+    // Get perk transactions of current month
+    getRewards().then(
+        response => {response.forEach(element => {
+            if (new Date(element.createdAt) >= getFirstDayCurrentMonth() && element.reference_type.indexOf('perk') >= 0){
+                perkTransactionsOfCurrentMonth.push(element);
+            }
+        })
+        return perkTransactionsOfCurrentMonth}).then(perkTransactionsOfCurrentMonth => {
+    
+    userPerks.forEach(perk => {
+        perkTransactionsOfCurrentMonth.forEach(transaction => {
+            if (transaction.reference_type.indexOf(`perk_${perk.id}_reward`) >= 0 ){usedPerks.push(perk.label)}
+        })
+    });
+    console.log('used perks: '+usedPerks);
+    userPerks.forEach(userPerk => {
+        if (usedPerks.indexOf(userPerk.label) === -1){unusedPerks.push(userPerk.label)}
+    })
+    console.log('unused perks: ' + unusedPerks);
+})
+}
+
 function flattenJson(json) {
     // Source: https://stackoverflow.com/a/61602592
     const flatten = (obj, roots = [], sep = '.') => Object.keys(obj).reduce((memo, prop) => Object.assign({}, memo, Object.prototype.toString.call(obj[prop]) === '[object Object]' ? flatten(obj[prop], roots.concat([prop]), sep) : { [roots.concat([prop]).join(sep)]: obj[prop] }), {})
@@ -295,7 +362,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         getOrders().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_orders")).then(sendResponse({ action: "blockpit", status: "done" }));
         // Withdrawals Export
         getWithdrawals().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_withdrawals")).then(sendResponse({ action: "blockpit", status: "done" }));
-    } else {
+    }
+    else if (action === "perks"){
+        getUserPerks().then(response => checkPerks(response)).then(sendResponse({ action: "transactions", status: "done" }))
+    }
+    else {
         sendResponse({ action: action, status: "done" })
     }
 });
