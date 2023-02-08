@@ -201,7 +201,7 @@ function convertForBlockpit(json) {
 function getBlockpitTemplate(element, index){
 
     // Case Rewards
-    if (typeof element.reason !== 'undefined'){
+    if (typeof element.reason !== 'undefined' && element.reason !== "Rejected by admin" && element.available === true){
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
@@ -219,8 +219,8 @@ function getBlockpitTemplate(element, index){
         }
         return template}
     
-    // Case Withdrawal
-    else if (element.__typename === "pluton_withdraw_requests" && element.status === "COMPLETED"){
+    // Case Withdrawal to Card
+    else if (element.payout_destination_type === "plutus_card" && element.status === "COMPLETED"){
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
@@ -237,6 +237,25 @@ function getBlockpitTemplate(element, index){
             linked_transaction: ''
         }
         return template}
+
+    // Case Withdrawal to Wallet
+    else if (element.payout_destination_type === "crypto_wallet" && element.status === "COMPLETED"){
+        let template = {
+            id: index,
+            exchange_name: 'Plutus DEX',
+            depot_name: 'Plutus',
+            transaction_date: blockpitDate(element.created_at),
+            buy_asset: '',
+            buy_amount: '',
+            sell_asset: 'PLU',
+            sell_amount: element.amount,
+            fee_asset: '',
+            fee_amount: '',
+            transaction_type: 'withdrawal',
+            note: element.payout_destination_type,
+            linked_transaction: ''
+        }
+        return template}    
 
     // Case Buy order
     else if (element.__typename === "crypto_orders_view" && element.model === "BuyOrder" && element.status === "FULFILLED"){
