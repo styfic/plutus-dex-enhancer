@@ -206,7 +206,7 @@ function getBlockpitTemplate(element, index){
             id: index,
             exchange_name: 'Plutus DEX',
             depot_name: 'Plutus',
-            transaction_date: blockpitDate(element.createdAt),
+            transaction_date: blockpitDate(element.updatedAt),
             buy_asset: 'PLU',
             buy_amount: element.amount,
             sell_asset: 'EUR',
