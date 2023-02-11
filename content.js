@@ -119,38 +119,38 @@ async function getTransactions() {
 async function getPerks() {
     var myHeaders = new Headers();
     myHeaders.append("Authorization", "Bearer " + localStorage['id_token']);
-  
+
     var requestOptions = {
         method: 'GET',
         headers: myHeaders,
         redirect: 'follow'
     };
-  
+
     return await fetch("https://api.plutus.it/platform/configurations/perks", requestOptions)
         .then(response => response.json())
         .then(jsonResponse => { return jsonResponse; })
         .catch(err => console.warn(err));
-  }
+}
 
 async function getUserPerks() {
-  var myHeaders = new Headers();
-  myHeaders.append("Authorization", "Bearer " + localStorage['id_token']);
+    var myHeaders = new Headers();
+    myHeaders.append("Authorization", "Bearer " + localStorage['id_token']);
 
-  var requestOptions = {
-      method: 'GET',
-      headers: myHeaders,
-      redirect: 'follow'
-  };
+    var requestOptions = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+    };
 
-  return await fetch("https://api.plutus.it/platform/perks", requestOptions)
-      .then(response => response.json())
-      .then(jsonResponse => { return jsonResponse; })
-      .catch(err => console.warn(err));
+    return await fetch("https://api.plutus.it/platform/perks", requestOptions)
+        .then(response => response.json())
+        .then(jsonResponse => { return jsonResponse; })
+        .catch(err => console.warn(err));
 }
 
 
 function fixStatements(json) {
-    json.forEach(function (record) {
+    json.forEach(function(record) {
         switch (record.type) {
             case "0":
                 record.type = "PENDING";
@@ -175,7 +175,7 @@ function fixStatements(json) {
 function blockpitDate(string) {
     let date = new Date(string);
     let dd = ('0' + date.getDate()).slice(-2);
-    let mm = ('0' + (date.getMonth()+1)).slice(-2);
+    let mm = ('0' + (date.getMonth() + 1)).slice(-2);
     let yyyy = date.getFullYear();
     let hh = ('0' + date.getHours()).slice(-2);
     let min = ('0' + date.getMinutes()).slice(-2);
@@ -184,24 +184,20 @@ function blockpitDate(string) {
     return blockpitDate;
 }
 
-function convertForBlockpit(json) {
-
-    console.log(json);
-    let resultJson = [];
-
-    for (let index = 0; index < json.length; index++) {
-        const element = json[index];
-        let row = getBlockpitTemplate (element, index);
-        if (typeof row !== 'undefined') { resultJson.push(row) } ;
-    }
-    console.log(resultJson);
-    return resultJson
+function convertForBlockpit(arr) {
+    return arr.reduce(
+        (transactions, transaction, index) => {
+            const row = getBlockpitTemplate(transaction, index)
+            if (typeof row !== 'undefined') transactions.push(row)
+            return transactions
+        }, []
+    )
 }
 
-function getBlockpitTemplate(element, index){
+function getBlockpitTemplate(element, index) {
 
     // Case Rewards
-    if (typeof element.reason !== 'undefined' && element.reason !== "Rejected by admin" && element.available === true){
+    if (typeof element.reason !== 'undefined' && element.reason !== "Rejected by admin" && element.available === true) {
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
@@ -217,10 +213,11 @@ function getBlockpitTemplate(element, index){
             note: `${element.contis_transaction ? element.contis_transaction.description : ''} ${element.reason || ''}`,
             linked_transaction: ''
         }
-        return template}
-    
+        return template
+    }
+
     // Case Withdrawal to Card
-    else if (element.payout_destination_type === "plutus_card" && element.status === "COMPLETED"){
+    else if (element.payout_destination_type === "plutus_card" && element.status === "COMPLETED") {
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
@@ -236,10 +233,11 @@ function getBlockpitTemplate(element, index){
             note: element.payout_destination_type,
             linked_transaction: ''
         }
-        return template}
+        return template
+    }
 
     // Case Withdrawal to Wallet
-    else if (element.payout_destination_type === "crypto_wallet" && element.status === "COMPLETED"){
+    else if (element.payout_destination_type === "crypto_wallet" && element.status === "COMPLETED") {
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
@@ -255,10 +253,11 @@ function getBlockpitTemplate(element, index){
             note: element.payout_destination_type,
             linked_transaction: ''
         }
-        return template}    
+        return template
+    }
 
     // Case Buy order
-    else if (element.__typename === "crypto_orders_view" && element.model === "BuyOrder" && element.status === "FULFILLED"){
+    else if (element.__typename === "crypto_orders_view" && element.model === "BuyOrder" && element.status === "FULFILLED") {
         let template = {
             id: index,
             exchange_name: 'Plutus DEX',
@@ -274,48 +273,33 @@ function getBlockpitTemplate(element, index){
             note: '',
             linked_transaction: ''
         }
-        return template}
+        return template
+    }
 
 }
+
 function getFirstDayCurrentMonth() {
-    const now = new Date(); 
+    const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
-function checkPerks(response){
+async function checkPerks() {
 
-    let perkTransactionsOfCurrentMonth = [];
-    let userPerks = response.perks;
-    let usedPerks = [];
-    let unusedPerks = [];
+    const perkTransactionsOfCurrentMonth = await getRewards().then(result => result.filter(transaction => new Date(transaction.createdAt) >= getFirstDayCurrentMonth() && transaction.reference_type.indexOf('perk') >= 0));
+    const userPerks = await getUserPerks().then(userPerks => userPerks.perks);
+    const usedPerks = userPerks.filter(perk => perkTransactionsOfCurrentMonth.some(transaction => transaction.reference_type === `perk_${perk.id}_reward`));
+    const unusedPerks = userPerks.filter(perk => perkTransactionsOfCurrentMonth.every(transaction => transaction.reference_type !== `perk_${perk.id}_reward`));
 
-    // Get perk transactions of current month
-    getRewards().then(
-        response => {response.forEach(element => {
-            if (new Date(element.createdAt) >= getFirstDayCurrentMonth() && element.reference_type.indexOf('perk') >= 0){
-                perkTransactionsOfCurrentMonth.push(element);
-            }
-        })
-        return perkTransactionsOfCurrentMonth}).then(perkTransactionsOfCurrentMonth => {
-    
-    userPerks.forEach(perk => {
-        perkTransactionsOfCurrentMonth.forEach(transaction => {
-            if (transaction.reference_type.indexOf(`perk_${perk.id}_reward`) >= 0 ){usedPerks.push(perk.label)}
-        })
-    });
-    console.log('used perks: '+usedPerks);
-    userPerks.forEach(userPerk => {
-        if (usedPerks.indexOf(userPerk.label) === -1){unusedPerks.push(userPerk.label)}
-    })
-    console.log('unused perks: ' + unusedPerks);
-})
+    window.alert('Unused perks: ' + unusedPerks.map(perk => perk.label) + ' Used perks: ' + usedPerks.map(perk => perk.label));
 }
 
 function flattenJson(json) {
     // Source: https://stackoverflow.com/a/61602592
-    const flatten = (obj, roots = [], sep = '.') => Object.keys(obj).reduce((memo, prop) => Object.assign({}, memo, Object.prototype.toString.call(obj[prop]) === '[object Object]' ? flatten(obj[prop], roots.concat([prop]), sep) : { [roots.concat([prop]).join(sep)]: obj[prop] }), {})
+    const flatten = (obj, roots = [], sep = '.') => Object.keys(obj).reduce((memo, prop) => Object.assign({}, memo, Object.prototype.toString.call(obj[prop]) === '[object Object]' ? flatten(obj[prop], roots.concat([prop]), sep) : {
+        [roots.concat([prop]).join(sep)]: obj[prop]
+    }), {})
     resultJson = []
-    json.forEach(function (record) {
+    json.forEach(function(record) {
         var flatRecord = flatten(record);
         resultJson.push(flatRecord);
     });
@@ -334,11 +318,11 @@ function jsonToCsv(json) {
             }
         });
     }
-    
+
     // Source: https://stackoverflow.com/a/31536517
-    var replacer = function (key, value) { return value === null ? '' : value }
-    var csv = json.map(function (row) {
-        return fields.map(function (fieldName) {
+    var replacer = function(key, value) { return value === null ? '' : value }
+    var csv = json.map(function(row) {
+        return fields.map(function(fieldName) {
             return JSON.stringify(row[fieldName], replacer)
         }).join(',')
     })
@@ -357,35 +341,28 @@ function downloadCSV(csv, filename) {
     downloadLink.click();
 }
 
-chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     const action = msg.action;
     if (action === "statement") {
         getStatements().then(response => fixStatements(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "account_statement")).then(sendResponse({ action: "statement", status: "done" }));
-    }
-    else if (action === "rewards") {
+    } else if (action === "rewards") {
         getRewards().then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "pluton_rewards")).then(sendResponse({ action: "rewards", status: "done" }));
-    }
-    else if (action === "orders") {
+    } else if (action === "orders") {
         getOrders().then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "crypto_orders")).then(sendResponse({ action: "orders", status: "done" }));
-    }
-    else if (action === "withdrawals") {
+    } else if (action === "withdrawals") {
         getWithdrawals().then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "withdrawals")).then(sendResponse({ action: "withdrawals", status: "done" }));
-    }
-    else if (action === "transactions") {
+    } else if (action === "transactions") {
         getTransactions().then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "transactions")).then(sendResponse({ action: "transactions", status: "done" }));
-    }
-    else if (action === "blockpit") {
+    } else if (action === "blockpit") {
         // Rewards Export
         getRewards().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_rewards")).then(sendResponse({ action: "blockpit", status: "done" }));
         // Orders Export
         getOrders().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_orders")).then(sendResponse({ action: "blockpit", status: "done" }));
         // Withdrawals Export
         getWithdrawals().then(response => convertForBlockpit(response)).then(response => flattenJson(response)).then(result => jsonToCsv(result)).then(csv => downloadCSV(csv, "blockpit_withdrawals")).then(sendResponse({ action: "blockpit", status: "done" }));
-    }
-    else if (action === "perks"){
-        getUserPerks().then(response => checkPerks(response)).then(sendResponse({ action: "transactions", status: "done" }))
-    }
-    else {
+    } else if (action === "perks") {
+        getUserPerks().then(response => checkPerks(response)).then(sendResponse({ action: "perks", status: "done" }))
+    } else {
         sendResponse({ action: action, status: "done" })
     }
 });
