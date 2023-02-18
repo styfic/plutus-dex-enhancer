@@ -20,7 +20,8 @@
         "https://dex.plutus.it/dashboard/*"
       ],
       "js": [
-        "content.js"
+        "content.js",
+        "blockpit.js"
       ]
     }
   ],
