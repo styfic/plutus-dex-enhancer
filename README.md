@@ -1,4 +1,11 @@
-# PlutusDex Enhancer 
+# Important
+
+This is a fork of the original Plutus DEX enhancer that provides two new features:
+
+- Export transactions (especially rewards) in a format that can be directly imported into blockpit (https://blockpit.io)
+- Introduce perk checker functionality which gives information about the perk usage in the current month
+
+## PlutusDex Enhancer 
 Extension to add community based client-side features to PlutusDex
 
 ## Requirements
